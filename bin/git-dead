@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import subprocess
+import sys
+from argparse import Namespace
+from typing import List, Tuple
+
+
+def git_file_log() -> List[Tuple[str, str, str]]:
+  ret = subprocess.run(
+      ["git", "log", "--diff-filter=D", "--name-only",
+       "--relative-date", "--color=always",
+       "--pretty=format:%x00%Cgreen%h%Creset %Cblue%ad%Creset"],
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE)
+  if ret.stderr:
+    raise Exception(ret.stderr.decode())
+  else:
+    decorated_paths: List[Tuple[str, str, str]] = []
+    for commit in ret.stdout.decode().split("\0"):
+      meta, *paths = commit.split("\n")
+      unpack = meta.split(" ", 1)
+      for path in paths:
+        if path:
+          sha, date = unpack
+          decorated_paths.append((sha, date, path))
+    return decorated_paths
+
+
+def git_show_file(path: str, sha: str) -> str:
+  ret = subprocess.run(
+      ["git", "show", f"{sha}~:{path}"],
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE)
+  if ret.stderr:
+    raise Exception(ret.stderr.decode())
+  else:
+    return ret.stdout.decode()
+
+
+def fzf_print(theme: str, paths: List[Tuple[str, str, str]]) -> None:
+  name = os.path.abspath(__file__)
+  exe = f"{name} --show {{}}"
+  bind = f"--bind=return:execute({exe})+abort"
+  preview_win = "--preview-window=right:70%:wrap"
+  preview = f"{name} --theme={theme} --preview={{}}"
+  lines: List[str] = [f"{sha}\n{date}\n{path}" for sha, date, path in paths]
+  ret = subprocess.run(
+      ["fzf", "--read0", "--ansi", bind, preview_win, f"--preview={preview}"],
+      input="\0".join(lines).encode(),
+      stdout=sys.stdout,
+      stderr=sys.stderr)
+
+
+def prettify(theme: str, path: str, text: str) -> str:
+  try:
+    from pygments import highlight
+    from pygments.formatters import get_formatter_by_name
+    from pygments.lexers import get_lexer_for_filename, guess_lexer
+    from pygments.lexers.special import TextLexer
+    from pygments.styles import get_style_by_name
+
+    def get_lexer(file_name):
+      try:
+        return get_lexer_for_filename(file_name)
+      except:
+        try:
+          shebang, _ = text.split("\n", 1)
+          return guess_lexer(shebang)
+        except:
+          return TextLexer()
+    style = get_style_by_name(theme)
+    formatter = get_formatter_by_name("terminal16m", style=style)
+    return highlight(
+        text,
+        lexer=get_lexer(path),
+        formatter=formatter)
+  except:
+    return text
+
+
+def fzf_preview(theme: str, sha: str, path: str) -> None:
+  content = git_show_file(path, sha)
+  prettied = prettify(theme, path, content)
+  print(prettied)
+
+
+def parse_args() -> Namespace:
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--preview")
+  parser.add_argument("--show")
+  parser.add_argument("-t", "--theme", default="friendly")
+  return parser.parse_args()
+
+
+def main() -> None:
+  args = parse_args()
+  if args.show:
+    sha, _, path = args.show.split("\n")
+    print(f"git show {sha}~:{path}")
+  elif args.preview:
+    sha, _, path = args.preview.split("\n")
+    fzf_preview(
+        args.theme,
+        sha,
+        path)
+  else:
+    paths = git_file_log()
+    fzf_print(args.theme, paths)
+
+
+main()

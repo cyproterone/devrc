@@ -1,0 +1,28 @@
+---
+
+- name: ensure xdg
+  file:
+    state: directory
+    path: "~/.config"
+
+- name: ensure xdg git
+  file:
+    state: directory
+    path: "~/.config/git"
+
+- name: ensure xdg git config
+  file:
+    state: touch
+    access_time: preserve
+    modification_time: preserve
+    path: "~/.config/git/config"
+
+- name: git config
+  loop: "{{ git_conf }}"
+  git_config:
+    scope: global
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+
+  
+

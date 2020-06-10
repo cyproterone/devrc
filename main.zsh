@@ -7,9 +7,10 @@ _devrc_main() {
 
   export PATH="$wd/bin:$PATH"
 
-  for module in modules/**/bin(N)
+  local modules="$wd/modules"
+  for module in "$modules"/**/bin(N)
   do
-    export PATH="$wd/$module:$PATH"
+    export PATH="$module:$PATH"
   done
 }
 

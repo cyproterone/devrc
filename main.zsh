@@ -3,9 +3,14 @@
 #################### ########### ####################
 
 _devrc_main() {
-  local file="${(%):-%x}"
-  local bin="$(dirname "$file")/bin"
-  export PATH="$bin:$PATH"
+  local wd="$(dirname "${(%):-%x}")"
+
+  export PATH="$wd/bin:$PATH"
+
+  for module in modules/**/bin(N)
+  do
+    export PATH="$wd/$module:$PATH"
+  done
 }
 
 _devrc_main

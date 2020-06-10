@@ -7,10 +7,17 @@ _devrc_main() {
 
   export PATH="$wd/bin:$PATH"
 
-  local modules="$wd/modules"
-  for module in "$modules"/**/bin(N)
+  for module in "$wd/modules/"**(N)
   do
-    export PATH="$module:$PATH"
+    if [[ -d "$module/bin" ]]
+    then
+      export PATH="$module:$PATH"
+    fi
+
+    if [[ -f "$module/main.zsh" ]]
+    then
+      source "$module/main.zsh"
+    fi
   done
 }
 

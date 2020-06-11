@@ -48,7 +48,7 @@ def git_show_diff(diff: int, path: str, sha: str) -> bytes:
 def fzf_print(diff: int, path: str, commits: bytes) -> None:
   name = os.path.abspath(__file__)
   exe = f"{name} {path} --show-sha {{+1}}"
-  bind = f"--bind=return:execute({exe})+abort"
+  bind = f"--bind=return:abort+execute:{exe}"
   preview_win = "--preview-window=right:70%:wrap"
   diff_arg = f"--diff={diff}" if diff >= 0 else ""
   preview = f"{name} {diff_arg} --preview-sha={{1}} {path}"
@@ -137,3 +137,4 @@ def main() -> None:
 
 
 main()
+

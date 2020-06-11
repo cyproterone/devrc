@@ -43,7 +43,7 @@ def git_show_file(path: str, sha: str) -> str:
 def fzf_print(theme: str, paths: List[Tuple[str, str, str]]) -> None:
   name = os.path.abspath(__file__)
   exe = f"{name} --show {{}}"
-  bind = f"--bind=return:execute({exe})+abort"
+  bind = f"--bind=return:abort+execute:{exe}"
   preview_win = "--preview-window=right:70%:wrap"
   preview = f"{name} --theme={theme} --preview={{}}"
   lines: List[str] = [f"{sha}\n{date}\n{path}" for sha, date, path in paths]
@@ -112,3 +112,4 @@ def main() -> None:
 
 
 main()
+

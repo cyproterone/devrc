@@ -10,3 +10,9 @@ git_conf:
   - name: diff.algorithm
     value: minimal
 
+  - name: alias.tm
+    value: time-machine
+
+  - name: alias.ded
+    value: dead
+

@@ -19,7 +19,7 @@ def recur_sort(data: Any) -> Any:
 
 def parse_args() -> Namespace:
   parser = ArgumentParser()
-  parser.add_argument("-i", "--indent", type=int, default=2)
+  parser.add_argument("-i", "--indent", type=int)
   return parser.parse_args()
 
 

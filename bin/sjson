@@ -1,74 +1,10 @@
 #!/usr/bin/env python3
 
-from __future__ import annotations
 from argparse import ArgumentParser, Namespace
-from enum import IntEnum
-from functools import total_ordering
-from json import loads, dumps
+from json import JSONDecodeError, loads, dumps
 from locale import strxfrm
-from sys import stdin
+from sys import stderr, stdin
 from typing import Any
-
-
-class Little():
-  def __lt__(self, other: Any) -> bool:
-    return True
-
-
-class JsonType(IntEnum):
-  Dict = 1
-  List = 2
-  String = 3
-  Number = 4
-  Bool = 5
-
-
-@total_ordering
-class SortBox:
-
-  def __init__(self, element: Any):
-
-    if type(element) is dict:
-      self.type = JsonType.Dict
-      key = None
-      for k in element.keys():
-        key = k
-        break
-      if key is None:
-        self.key = Little()
-      else:
-        self.key = key
-
-    elif type(element) is list:
-      self.type = JsonType.List
-      if len(element):
-        self.key = element[0]
-      else:
-        self.key = Little()
-
-    elif type(element) is str:
-      self.type = JsonType.String
-      self.key = strxfrm(element)
-
-    elif type(element) in {int, float}:
-      self.type = JsonType.Number
-      self.key = element
-
-    elif type(element) is bool:
-      self.type = JsonType.Bool
-      self.key = element
-
-    else:
-      assert False
-
-  def __lt__(self, other: Jsort) -> bool:
-    if self.type == other.type:
-      return self.key < other.key
-    else:
-      return self.type < other.type
-
-  def __eq__(self, other: Jsort) -> bool:
-    self.key = other.key
 
 
 def recur_sort(data: Any) -> Any:
@@ -76,7 +12,7 @@ def recur_sort(data: Any) -> Any:
     return {k: recur_sort(data[k])
             for k in sorted(data.keys(), key=strxfrm)}
   elif type(data) is list:
-    return sorted(map(recur_sort, data), key=SortBox)
+    return [recur_sort(el) for el in data]
   else:
     return data
 
@@ -89,9 +25,15 @@ def parse_args() -> Namespace:
 
 def main() -> None:
   args = parse_args()
-  data = loads(stdin.read())
-  new = recur_sort(data)
-  print(dumps(new, indent=args.indent))
+  data = stdin.read()
+  try:
+    json = loads(data)
+  except JSONDecodeError:
+    print(f"ERROR! Failed to parse:\n\n{data}", file=stderr)
+    exit(1)
+  else:
+    new = recur_sort(json)
+    print(dumps(new, indent=args.indent))
 
 
 main()

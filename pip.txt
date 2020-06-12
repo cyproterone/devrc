@@ -1,3 +1,7 @@
+pynvim
 git+https://github.com/LazoCoder/Pokemon-Terminal.git
 ranger-fm
 speedtest-cli
+tldr
+ansible
+

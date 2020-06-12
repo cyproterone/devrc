@@ -1,2 +1,11 @@
 #!/usr/bin/env ruby
 
+ENV["PATH"] = ENV["PATH"]
+  .split(":")
+  .select { |p| p != __dir__ }
+  .join(":")
+
+puts ARGV
+
+exit!
+

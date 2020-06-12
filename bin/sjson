@@ -10,7 +10,7 @@ from typing import Any
 def recur_sort(data: Any) -> Any:
   if type(data) is dict:
     return {k: recur_sort(data[k])
-            for k in sorted(data.keys(), key=strxfrm)}
+            for k in sorted(data, key=strxfrm)}
   elif type(data) is list:
     return [recur_sort(el) for el in data]
   else:

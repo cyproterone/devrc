@@ -20,6 +20,7 @@ class JsonType(IntEnum):
   List = 2
   String = 3
   Number = 4
+  Bool = 5
 
 
 @total_ordering
@@ -49,9 +50,14 @@ class SortBox:
       self.type = JsonType.String
       self.key = strxfrm(element)
 
-    elif type(element) is int:
+    elif type(element) in {int, float}:
       self.type = JsonType.Number
       self.key = element
+
+    elif type(element) is bool:
+      self.type = JsonType.Bool
+      self.key = element
+
     else:
       assert False
 

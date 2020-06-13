@@ -4,4 +4,4 @@ ranger-fm
 speedtest-cli
 tldr
 ansible
-
+httpie

@@ -3,14 +3,14 @@
 const assert = require("assert");
 const { spawnSync } = require("child_process");
 const { existsSync, mkdirSync } = require("fs");
-const { dirname, join } = require("path");
+const { join } = require("path");
 
 process.env["PATH"] = process.env["PATH"]
   .split(":")
   .filter((p) => p !== __dirname)
   .join(":");
 
-const global_home = dirname(dirname(process.env["NPM_GLOBAL_BIN"]));
+const global_home = process.env["NPM_GLOBAL_HOME"];
 const global_set = new Set(["--global", "-g"]);
 assert(global_home);
 

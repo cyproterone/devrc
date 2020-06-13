@@ -3,6 +3,6 @@
 #################### ########### ####################
 
 export PATH="$XDG_CONFIG_HOME/devrc/bin:$PATH"
-export NPM_GLOBAL_BIN="$XDG_DATA_HOME/npm_global/node_modules/.bin"
-export PATH="$NPM_GLOBAL_BIN:$PATH"
+export NPM_GLOBAL_HOME="$XDG_DATA_HOME/npm_global"
+export PATH="$NPM_GLOBAL_HOME/node_modules/.bin:$PATH"
 

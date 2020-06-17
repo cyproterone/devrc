@@ -37,7 +37,7 @@ if (global_install) {
   if (!existsSync(packages)) {
     spawnSync("npm", ["init", "-y"], {
       cwd,
-      stdio: ["pipe", "inherit", "inherit"],
+      stdio: "inherit",
     });
   }
   console.log("-".repeat(process.stdout.columns));

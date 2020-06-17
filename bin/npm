@@ -47,7 +47,7 @@ if (global_install) {
 
 const { status } = spawnSync("npm", [...args], {
   cwd,
-  stdio: ["inherit", "inherit", "inherit"],
+  stdio: "inherit",
 });
 process.exit(status);
 

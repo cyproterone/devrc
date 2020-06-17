@@ -10,24 +10,25 @@ process.env["PATH"] = process.env["PATH"]
   .filter((p) => p !== __dirname)
   .join(":");
 
+const [, , ...args] = process.argv;
 const global_home = process.env["NPM_GLOBAL_HOME"];
-const global_set = new Set(["--global", "-g"]);
 assert(global_home);
 
-const command = process.argv[2];
+const command = args[0];
 const install = command === "install" || command === "i";
-const is_global = process.argv.some((arg) => global_set.has(arg));
+
+const global_set = new Set(["--global", "-g"]);
+const is_global = args.some((arg) => global_set.has(arg));
 const global_install = install && is_global;
 
 const cwd = global_install ? global_home : process.cwd();
-
-const args = (() => {
+const new_args = (() => {
   if (global_install) {
-    return process.argv.filter((arg) => !global_set.has(arg));
+    return args.filter((arg) => !global_set.has(arg));
   } else {
-    return process.argv;
+    return args;
   }
-})().filter((_, i) => i > 1);
+})();
 
 if (global_install) {
   if (!existsSync(global_home)) {
@@ -45,7 +46,7 @@ if (global_install) {
   console.log("-".repeat(process.stdout.columns));
 }
 
-const { status } = spawnSync("npm", [...args], {
+const { status } = spawnSync("npm", [...new_args], {
   cwd,
   stdio: "inherit",
 });

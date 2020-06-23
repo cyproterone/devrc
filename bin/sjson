@@ -3,6 +3,7 @@
 from argparse import ArgumentParser, Namespace
 from json import JSONDecodeError, loads, dumps
 from locale import strxfrm
+from select import select
 from sys import stderr, stdin
 from typing import Any
 
@@ -25,15 +26,20 @@ def parse_args() -> Namespace:
 
 def main() -> None:
   args = parse_args()
-  data = stdin.read()
-  try:
-    json = loads(data)
-  except JSONDecodeError:
-    print(f"ERROR! Failed to parse:\n\n{data}", file=stderr)
-    exit(1)
+  pipe, _, _ = select((stdin,), (), (), 0.0)
+  if pipe:
+    data = stdin.read()
+    try:
+      json = loads(data)
+    except JSONDecodeError:
+      print(f"ERROR! -- Failed to parse:\n\n{data}", file=stderr)
+      exit(1)
+    else:
+      new = recur_sort(json)
+      print(dumps(new, indent=args.indent))
   else:
-    new = recur_sort(json)
-    print(dumps(new, indent=args.indent))
+    print(f"ERROR! -- nil input", file=stderr)
+    exit(1)
 
 
 main()

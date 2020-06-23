@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
+
+
+UPSTREAM="$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream})"
+REMOTE="$(cut -d '/' -f 1 <<< "$UPSTREAM")"
+URI="$(git remote get-url "$REMOTE")"
+
+exec "$BROWSER" "$URI"
+

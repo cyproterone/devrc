@@ -26,7 +26,7 @@ def parse_args() -> Namespace:
 
 def main() -> None:
   args = parse_args()
-  pipe, _, _ = select((stdin,), (), (), 0.0)
+  pipe, _, _ = select((stdin,), (), (), 0)
   if pipe:
     data = stdin.read()
     try:

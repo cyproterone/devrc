@@ -3,7 +3,6 @@
 from argparse import ArgumentParser, Namespace
 from json import JSONDecodeError, loads, dumps
 from locale import strxfrm
-from select import select
 from sys import stderr, stdin
 from typing import Any
 
@@ -26,8 +25,7 @@ def parse_args() -> Namespace:
 
 def main() -> None:
   args = parse_args()
-  pipe, _, _ = select((stdin,), (), (), 0)
-  if pipe:
+  if not stdin.isatty():
     data = stdin.read()
     try:
       json = loads(data)

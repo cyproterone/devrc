@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 
-import argparse
-import os
-import subprocess
-import sys
-from argparse import Namespace
+from argparse import ArgumentParser, Namespace
+from subprocess import PIPE, run
+from sys import stderr, stdout
 from typing import List, Tuple
 
 
 def git_file_log() -> List[Tuple[str, str, str]]:
-  ret = subprocess.run(
+  ret = run(
       ["git", "log", "--diff-filter=D", "--name-only",
        "--relative-date", "--color=always",
        "--pretty=format:%x00%Cgreen%h%Creset %Cblue%ad%Creset"],
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE)
+      stdout=PIPE,
+      stderr=PIPE)
   if ret.stderr:
     raise Exception(ret.stderr.decode())
   else:
@@ -30,10 +28,10 @@ def git_file_log() -> List[Tuple[str, str, str]]:
 
 
 def git_show_file(path: str, sha: str) -> str:
-  ret = subprocess.run(
+  ret = run(
       ["git", "show", f"{sha}~:{path}"],
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE)
+      stdout=PIPE,
+      stderr=PIPE)
   if ret.stderr:
     raise Exception(ret.stderr.decode())
   else:
@@ -41,17 +39,16 @@ def git_show_file(path: str, sha: str) -> str:
 
 
 def fzf_print(theme: str, paths: List[Tuple[str, str, str]]) -> None:
-  name = os.path.abspath(__file__)
+  name = __file__
   exe = f"{name} --show {{}}"
   bind = f"--bind=return:abort+execute:{exe}"
   preview_win = "--preview-window=right:70%:wrap"
   preview = f"{name} --theme={theme} --preview={{}}"
   lines: List[str] = [f"{sha}\n{date}\n{path}" for sha, date, path in paths]
-  ret = subprocess.run(
+  ret = run(
       ["fzf", "--read0", "--ansi", bind, preview_win, f"--preview={preview}"],
-      input="\0".join(lines).encode(),
-      stdout=sys.stdout,
-      stderr=sys.stderr)
+      input="\0".join(lines).encode())
+  exit(ret.returncode)
 
 
 def prettify(theme: str, path: str, text: str) -> str:
@@ -88,7 +85,7 @@ def fzf_preview(theme: str, sha: str, path: str) -> None:
 
 
 def parse_args() -> Namespace:
-  parser = argparse.ArgumentParser()
+  parser = ArgumentParser()
   parser.add_argument("--preview")
   parser.add_argument("--show")
   parser.add_argument("-t", "--theme", default="friendly")

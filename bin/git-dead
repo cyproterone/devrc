@@ -57,7 +57,7 @@ def fzf_print(paths: Iterable[Tuple[str, str, str]]) -> None:
 
 def fzf_preview(sha: str, path: str) -> None:
   content = git_show_file(path, sha)
-  ret = run(["ccat", content, "-"], input=content.encode())
+  ret = run(["ccat", path, "-"], input=content.encode())
   exit(ret.returncode)
 
 

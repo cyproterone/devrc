@@ -45,8 +45,7 @@ def get_lexer(file_name: str, text: str) -> Lexer:
     return get_lexer_for_filename(file_name)
   except:
     try:
-      shebang, *_ = text.split("\n", 1)
-      return guess_lexer(shebang)
+      return guess_lexer(text)
     except:
       return TextLexer()
 

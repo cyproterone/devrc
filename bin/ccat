@@ -5,7 +5,8 @@ from sys import stdin
 from typing import Optional
 
 from pygments import highlight
-from pygments.formatters import get_all_formatters, get_formatter_by_name
+from pygments.formatters import get_formatter_by_name
+from pygments.formatters._mapping import FORMATTERS
 from pygments.lexer import Lexer
 from pygments.lexers import get_lexer_for_filename, guess_lexer
 from pygments.lexers.special import TextLexer
@@ -21,8 +22,10 @@ def arg_parse() -> Namespace:
                       choices=themes,
                       default="friendly")
 
+  formatters = [name for _, _, names, *_ in FORMATTERS.values()
+                for name in sorted(names)]
   parser.add_argument("-f", "--formatter",
-                      # choices=[*get_all_formatters()],
+                      choices=formatters,
                       default="terminal16m")
 
   return parser.parse_args()

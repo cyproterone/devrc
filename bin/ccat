@@ -16,6 +16,7 @@ from pygments.styles import get_all_styles, get_style_by_name
 def arg_parse() -> Namespace:
   parser = ArgumentParser()
   parser.add_argument("name", nargs="?")
+  parser.add_argument("-", dest="use_stdin", action="store_true")
 
   themes = sorted(get_all_styles())
   parser.add_argument("-t", "--theme",
@@ -31,8 +32,8 @@ def arg_parse() -> Namespace:
   return parser.parse_args()
 
 
-def slurp(name: Optional[str]) -> str:
-  if name is None:
+def slurp(name: Optional[str], use_stdin: bool) -> str:
+  if use_stdin or name is None:
     return stdin.read()
   else:
     with open(name) as fd:
@@ -52,10 +53,11 @@ def get_lexer(file_name: str, text: str) -> Lexer:
 
 def main() -> None:
   args = arg_parse()
-  text = slurp(args.name)
+  text = slurp(args.name, args.use_stdin)
 
   style = get_style_by_name(args.theme)
   formatter = get_formatter_by_name(args.formatter, style=style)
+
   lexer = get_lexer(args.name, text)
   pretty = highlight(text, lexer=lexer, formatter=formatter)
 

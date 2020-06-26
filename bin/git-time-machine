@@ -70,9 +70,10 @@ def prettify_diff(diff: bytes) -> None:
     if prog == "delta":
       width = int(environ["FZF_PREVIEW_COLUMNS"]) - 2
       args.extend(("--width", str(width)))
-    run([prog, *(a for a in args if a)], input=diff)
+    ret = run([prog, *(a for a in args if a)], input=diff)
+    exit(ret.returncode)
   else:
-    print(diff.decode())
+    print(diff.decode(), end="")
 
 
 def fzf_preview(diff: int, sha: str, path: str) -> None:

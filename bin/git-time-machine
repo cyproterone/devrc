@@ -5,26 +5,33 @@ from math import floor
 from os import environ
 from shutil import get_terminal_size
 from subprocess import PIPE, run
+from sys import argv
 from typing import List
+
+
+_delim_ = "\04"
+
+
+def slurp(path: str) -> str:
+  with open(path) as fd:
+    return fd.read()
 
 
 def git_file_log(path: str) -> bytes:
   ret = run(["git", "log", "--relative-date", "--color=always",
              "--pretty=format:%Cgreen%h%Creset %Cblue%ad%Creset %s", path],
-            stdout=PIPE,
-            stderr=PIPE)
-  if ret.stderr:
-    raise Exception(ret.stderr.decode())
+            stdout=PIPE)
+  if ret.returncode != 0:
+    exit(ret.returncode)
   else:
     return ret.stdout
 
 
 def git_show_file(path: str, sha: str) -> str:
   ret = run(["git", "show", f"{sha}:{path}"],
-            stdout=PIPE,
-            stderr=PIPE)
-  if ret.stderr:
-    raise Exception(ret.stderr.decode())
+            stdout=PIPE)
+  if ret.returncode != 0:
+    exit(ret.returncode)
   else:
     return ret.stdout.decode()
 
@@ -32,49 +39,25 @@ def git_show_file(path: str, sha: str) -> str:
 def git_show_diff(diff: int, path: str, sha: str) -> bytes:
   ret = run(["git", "diff", f"--unified={diff}",
              f"{sha}~", sha, "--", path],
-            stdout=PIPE,
-            stderr=PIPE)
-  if ret.stderr:
-    raise Exception(ret.stderr.decode())
+            stdout=PIPE)
+  if ret.returncode != 0:
+    exit(ret.returncode)
   else:
     return ret.stdout
 
 
 def fzf_print(diff: int, path: str, commits: bytes) -> None:
-  name = __file__
-  exe = f"{name} {path} --show-sha {{+1}}"
+  exe = f"{path}{_delim_}--show-sha={{+f1}}"
   bind = f"--bind=return:abort+execute:{exe}"
   preview_win = "--preview-window=right:70%:wrap"
-  diff_arg = f"--diff={diff}" if diff >= 0 else ""
-  preview = f"{name} {diff_arg} --preview-sha={{1}} {path}"
-  run(["fzf", "--ansi", "-m", bind, preview_win, f"--preview={preview}"],
-      input=commits)
+  diff_arg = f"--diff={diff}{_delim_}" if diff >= 0 else ""
+  preview = f"{diff_arg}--preview-sha={{f1}}{_delim_}{path}"
 
-
-def prettify_file(path: str, text: str) -> str:
-  try:
-    from pygments import highlight
-    from pygments.formatters import get_formatter_by_name
-    from pygments.lexers import get_lexer_for_filename, guess_lexer
-    from pygments.lexers.special import TextLexer
-    from pygments.styles import get_style_by_name
-
-    def get_lexer(file_name):
-      try:
-        return get_lexer_for_filename(file_name)
-      except:
-        try:
-          shebang, _ = text.split("\n", 1)
-          return guess_lexer(shebang)
-        except:
-          return TextLexer()
-    style = get_style_by_name("friendly")
-    formatter = get_formatter_by_name("terminal16m", style=style)
-    return highlight(text,
-                     lexer=get_lexer(path),
-                     formatter=formatter)
-  except:
-    return text
+  ret = run(["fzf", "--ansi", "-m", bind,
+             preview_win, f"--preview={preview}"],
+            env={**environ, "SHELL": __file__},
+            input=commits)
+  exit(ret.returncode)
 
 
 def prettify_diff(diff: bytes) -> None:
@@ -98,32 +81,42 @@ def fzf_preview(diff: int, sha: str, path: str) -> None:
     prettify_diff(diff)
   else:
     content = git_show_file(path, sha)
-    prettied = prettify_file(path, content)
-    print(prettied)
+    # prettied = prettify_file(path, content)
+    print(content)
 
 
 def parse_args() -> Namespace:
   parser = ArgumentParser()
   parser.add_argument("path")
   parser.add_argument("--preview-sha")
+  parser.add_argument("--show-sha")
   parser.add_argument("-d", "--diff", type=int, default=-1)
-  parser.add_argument("--show-sha", nargs="+", default=[])
-  return parser.parse_args()
+
+  try:
+    a1, a2 = argv[1:]
+    if a1 == "-c":
+      return parser.parse_args(a2.split(_delim_))
+    else:
+      return parser.parse_args()
+  except ValueError:
+    return parser.parse_args()
 
 
 def main() -> None:
   args = parse_args()
+
   if args.show_sha:
-    for sha in args.show_sha:
-      print(f"git show {sha}:{args.path}")
+    sha = slurp(args.show_sha)
+    print(f"git show {sha}:{args.path}")
   elif args.preview_sha:
-    fzf_preview(
-        args.diff,
-        args.preview_sha,
-        args.path)
+    sha = slurp(args.preview_sha)
+    fzf_preview(args.diff,
+                sha,
+                args.path)
   else:
     commits = git_file_log(args.path)
     fzf_print(args.diff, args.path, commits)
 
 
 main()
+

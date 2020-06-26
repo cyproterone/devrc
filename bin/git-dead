@@ -21,7 +21,7 @@ def git_file_log() -> Iterable[Tuple[str, str, str]]:
              "--pretty=format:%x00%Cgreen%h%Creset %Cblue%ad%Creset"],
             stdout=PIPE)
   if ret.returncode != 0:
-    raise Exception()
+    exit(ret.returncode)
   else:
     for commit in ret.stdout.decode().split("\0"):
       meta, *paths = commit.split("\n")
@@ -37,20 +37,22 @@ def git_show_file(path: str, sha: str) -> str:
       ["git", "show", f"{sha}~:{path}"],
       stdout=PIPE)
   if ret.returncode != 0:
-    raise Exception()
+    exit(ret.returncode)
   else:
     return ret.stdout.decode()
 
 
 def fzf_print(paths: Iterable[Tuple[str, str, str]]) -> None:
-  name = __file__
   exe = "--show={f}"
   bind = f"--bind=return:abort+execute:{exe}"
   preview_win = "--preview-window=right:70%:wrap"
   preview = f"--preview={{f}}"
-  lines: List[str] = [f"{sha}\n{date}\n{path}" for sha, date, path in paths]
-  ret = run(["fzf", "--read0", "--ansi", bind, preview_win, f"--preview={preview}"],
-            env={**environ, "SHELL": name},
+  lines: Iterable[str] = (f"{sha}\n{date}\n{path}"
+                          for sha, date, path in paths)
+
+  ret = run(["fzf", "--read0", "--ansi",
+             bind, preview_win, f"--preview={preview}"],
+            env={**environ, "SHELL": __file__},
             input="\0".join(lines).encode())
   exit(ret.returncode)
 

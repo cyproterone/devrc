@@ -11,16 +11,18 @@ class EchoServer(BaseHTTPRequestHandler):
     _, cols = get_terminal_size()
     print("-" * cols)
 
+    proto = self.request_version
     method = self.command
     path = self.path
     headers = self.headers.items()
 
-    print(f"{method} -- {path}")
+    dest = next(val for key, val in headers
+                if key.lower() == "host")
+
+    print(f"{proto} {method} {dest}{path}")
     print("::Headers::")
     for key, val in headers:
       print(f"{key}: {val}")
-
-    self.send_response_only(200, "OK")
 
   def do_GET(self):
     self.__log_req__()

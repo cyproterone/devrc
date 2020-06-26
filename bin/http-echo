@@ -7,6 +7,7 @@ from socket import getfqdn
 
 
 class EchoServer(BaseHTTPRequestHandler):
+
   def __respond__(self) -> None:
     self.send_response_only(200)
     self.end_headers()

@@ -61,19 +61,14 @@ def fzf_print(diff: int, path: str, commits: bytes) -> None:
 
 
 def prettify_diff(diff: bytes) -> None:
-  cols, _ = get_terminal_size()
-  width = floor(cols * 0.7) - 8
   pager = environ.get("GIT_PAGER", "tee")
-  if pager:
-    cmd = next(iter(pager.split("|", 1)))
-    prog, *args = cmd.split(" ")
-    if prog == "delta":
-      width = int(environ["FZF_PREVIEW_COLUMNS"]) - 2
-      args.extend(("--width", str(width)))
-    ret = run([prog, *(a for a in args if a)], input=diff)
-    exit(ret.returncode)
-  else:
-    print(diff.decode(), end="")
+  cmd = next(iter(pager.split("|", 1)))
+  prog, *args = cmd.split(" ")
+  if prog == "delta":
+    width = int(environ["FZF_PREVIEW_COLUMNS"]) - 2
+    args.extend(("--width", str(width)))
+  ret = run([prog, *(a for a in args if a)], input=diff)
+  exit(ret.returncode)
 
 
 def fzf_preview(diff: int, sha: str, path: str) -> None:

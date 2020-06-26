@@ -65,8 +65,9 @@ def fzf_preview(sha: str, path: str) -> None:
 
 def parse_args() -> Namespace:
   parser = ArgumentParser()
-  parser.add_argument("--preview")
-  parser.add_argument("--show")
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument("--preview")
+  group.add_argument("--show")
 
   try:
     a1, a2 = argv[1:]

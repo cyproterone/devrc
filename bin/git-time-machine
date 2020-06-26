@@ -9,7 +9,7 @@ from sys import argv
 from typing import List
 
 
-_delim_ = "\04"
+EOF = "\04"
 
 
 def slurp(path: str) -> str:
@@ -47,11 +47,11 @@ def git_show_diff(diff: int, path: str, sha: str) -> bytes:
 
 
 def fzf_print(diff: int, path: str, commits: bytes) -> None:
-  exe = f"{path}{_delim_}--show-sha={{+f1}}"
+  exe = f"{path}{EOF}--show-sha={{+f1}}"
   bind = f"--bind=return:abort+execute:{exe}"
   preview_win = "--preview-window=right:70%:wrap"
-  diff_arg = f"--diff={diff}{_delim_}" if diff >= 0 else ""
-  preview = f"{diff_arg}--preview-sha={{f1}}{_delim_}{path}"
+  diff_arg = f"--diff={diff}{EOF}" if diff >= 0 else ""
+  preview = f"{diff_arg}--preview-sha={{f1}}{EOF}{path}"
 
   ret = run(["fzf", "--ansi", "-m", bind,
              preview_win, f"--preview={preview}"],
@@ -96,7 +96,7 @@ def parse_args() -> Namespace:
   try:
     a1, a2 = argv[1:]
     if a1 == "-c":
-      return parser.parse_args(a2.split(_delim_))
+      return parser.parse_args(a2.split(EOF))
     else:
       return parser.parse_args()
   except ValueError:

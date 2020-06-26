@@ -7,7 +7,7 @@ from sys import argv, stderr, stdout
 from typing import Iterable, List, Tuple
 
 
-_delim_ = "\04"
+EOF = "\04"
 
 
 def slurp(path: str) -> str:
@@ -71,7 +71,7 @@ def parse_args() -> Namespace:
   try:
     a1, a2 = argv[1:]
     if a1 == "-c":
-      return parser.parse_args(a2.split(_delim_))
+      return parser.parse_args(a2.split(EOF))
     else:
       return parser.parse_args()
   except ValueError:

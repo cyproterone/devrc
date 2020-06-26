@@ -85,8 +85,8 @@ def parse_args() -> Namespace:
   parser = ArgumentParser()
   parser.add_argument("path")
   group = parser.add_mutually_exclusive_group()
-  group.add_argument("--preview-sha")
-  group.add_argument("--show-sha")
+  group.add_argument("--preview-sha", type=slurp)
+  group.add_argument("--show-sha", type=slurp)
   parser.add_argument("-d", "--diff", type=int, default=-1)
 
   try:
@@ -103,10 +103,10 @@ def main() -> None:
   args = parse_args()
 
   if args.show_sha:
-    sha = slurp(args.show_sha).strip()
+    sha = args.show_sha.strip()
     print(f"git show {sha}:{args.path}")
   elif args.preview_sha:
-    sha = slurp(args.preview_sha).strip()
+    sha = args.preview_sha.strip()
     fzf_preview(args.diff,
                 sha,
                 args.path)

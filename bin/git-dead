@@ -66,8 +66,8 @@ def fzf_preview(sha: str, path: str) -> None:
 def parse_args() -> Namespace:
   parser = ArgumentParser()
   group = parser.add_mutually_exclusive_group()
-  group.add_argument("--preview")
-  group.add_argument("--show")
+  group.add_argument("--preview", type=slurp)
+  group.add_argument("--show", type=slurp)
 
   try:
     a1, a2 = argv[1:]
@@ -82,10 +82,10 @@ def parse_args() -> Namespace:
 def main() -> None:
   args = parse_args()
   if args.show:
-    sha, _, path = slurp(args.show).strip().split("\n")
+    sha, _, path = args.show.strip().split("\n")
     print(f"git show {sha}~:{path}")
   elif args.preview:
-    sha, _, path = slurp(args.preview).strip().split("\n")
+    sha, _, path = args.preview.strip().split("\n")
     fzf_preview(sha, path)
   else:
     paths = git_file_log()

@@ -7,12 +7,12 @@ from socket import getfqdn
 
 
 class EchoServer(BaseHTTPRequestHandler):
-  def __respond__(self):
+  def __respond__(self) -> None:
     self.send_response_only(200)
     self.end_headers()
     self.wfile.write(b"OK")
 
-  def __log_req__(self):
+  def __log_req__(self) -> None:
     _, cols = get_terminal_size()
     print("*" * cols)
 
@@ -32,14 +32,14 @@ class EchoServer(BaseHTTPRequestHandler):
       print("::Body::")
       print(body)
 
-  def do_GET(self):
+  def do_GET(self) -> None:
     self.__log_req__()
     self.__respond__()
 
-  def do_POST(self):
+  def do_POST(self) -> None:
     self.do_GET()
 
-  def do_PUT(self):
+  def do_PUT(self) -> None:
     self.do_POST()
 
 

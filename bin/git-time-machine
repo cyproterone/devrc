@@ -27,13 +27,13 @@ def git_file_log(path: str) -> bytes:
     return ret.stdout
 
 
-def git_show_file(path: str, sha: str) -> str:
+def git_show_file(path: str, sha: str) -> bytes:
   ret = run(["git", "show", f"{sha}:{path}"],
             stdout=PIPE)
   if ret.returncode != 0:
     exit(ret.returncode)
   else:
-    return ret.stdout.decode()
+    return ret.stdout
 
 
 def git_show_diff(diff: int, path: str, sha: str) -> bytes:
@@ -81,8 +81,8 @@ def fzf_preview(diff: int, sha: str, path: str) -> None:
     prettify_diff(diff)
   else:
     content = git_show_file(path, sha)
-    # prettied = prettify_file(path, content)
-    print(content)
+    ret = run(["ccat", path, "-"], input=content)
+    exit(ret.returncode)
 
 
 def parse_args() -> Namespace:
@@ -106,10 +106,10 @@ def main() -> None:
   args = parse_args()
 
   if args.show_sha:
-    sha = slurp(args.show_sha)
+    sha = slurp(args.show_sha).strip()
     print(f"git show {sha}:{args.path}")
   elif args.preview_sha:
-    sha = slurp(args.preview_sha)
+    sha = slurp(args.preview_sha).strip()
     fzf_preview(args.diff,
                 sha,
                 args.path)

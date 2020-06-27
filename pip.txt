@@ -6,4 +6,3 @@ speedtest-cli
 tldr
 httpie
 streamlink
-

@@ -8,4 +8,3 @@ ENV["PATH"] = ENV["PATH"]
 puts ARGV
 
 exit!
-

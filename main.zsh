@@ -15,4 +15,3 @@ git-ssh() {
     export GIT_SSH_COMMAND="$(command git-ssh "$@")"
   fi
 }
-

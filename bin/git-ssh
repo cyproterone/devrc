@@ -43,4 +43,3 @@ fi
 opts="ssh -o IdentitiesOnly=yes -i $key"
 printf '%s' "$opts"
 >&2 printf '%s%s\n' 'NEW -- $GIT_SSH_COMMAND=' "$opts"
-

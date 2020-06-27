@@ -9,4 +9,3 @@ REMOTE="$(cut -d '/' -f 1 <<< "$UPSTREAM")"
 URI="$(git remote get-url "$REMOTE")"
 
 exec "$BROWSER" "$URI"
-

@@ -31,4 +31,3 @@ if install and not venv:
 else:
   ret = run([name, *args])
   exit(ret.returncode)
-

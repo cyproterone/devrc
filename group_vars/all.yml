@@ -15,4 +15,3 @@ git_conf:
 
   - name: alias.ded
     value: dead
-

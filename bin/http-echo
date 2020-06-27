@@ -7,63 +7,63 @@ from socket import getfqdn
 
 
 class EchoServer(BaseHTTPRequestHandler):
+    def __respond__(self) -> None:
+        self.send_response_only(200)
+        self.end_headers()
+        self.wfile.write(b"OK")
 
-  def __respond__(self) -> None:
-    self.send_response_only(200)
-    self.end_headers()
-    self.wfile.write(b"OK")
+    def __log_req__(self) -> None:
+        _, cols = get_terminal_size()
+        print("*" * cols)
 
-  def __log_req__(self) -> None:
-    _, cols = get_terminal_size()
-    print("*" * cols)
+        method = self.command
+        path = self.path
+        headers = self.headers.items()
 
-    method = self.command
-    path = self.path
-    headers = self.headers.items()
+        body_len = next(
+            (int(val) for key, val in headers if key.lower() == "content-length"), 0
+        )
+        body = self.rfile.read(body_len).decode()
 
-    body_len = next((int(val) for key, val in headers
-                     if key.lower() == "content-length"), 0)
-    body = self.rfile.read(body_len).decode()
+        print(f"{method} {path}")
+        print("::Headers::")
+        for key, val in headers:
+            print(f"{key}: {val}")
+        if body:
+            print("::Body::")
+            print(body)
 
-    print(f"{method} {path}")
-    print("::Headers::")
-    for key, val in headers:
-      print(f"{key}: {val}")
-    if body:
-      print("::Body::")
-      print(body)
+    def do_GET(self) -> None:
+        self.__log_req__()
+        self.__respond__()
 
-  def do_GET(self) -> None:
-    self.__log_req__()
-    self.__respond__()
+    def do_POST(self) -> None:
+        self.do_GET()
 
-  def do_POST(self) -> None:
-    self.do_GET()
-
-  def do_PUT(self) -> None:
-    self.do_POST()
+    def do_PUT(self) -> None:
+        self.do_POST()
 
 
 def parse_args() -> Namespace:
-  parser = ArgumentParser()
-  parser.add_argument("-o", "--open", action="store_true")
-  parser.add_argument("-p", "--port", type=int, default=8080)
-  return parser.parse_args()
+    parser = ArgumentParser()
+    parser.add_argument("-o", "--open", action="store_true")
+    parser.add_argument("-p", "--port", type=int, default=8080)
+    return parser.parse_args()
 
 
 def main() -> None:
-  args = parse_args()
-  addr = "" if args.open else "localhost"
-  bind = (addr, args.port)
+    args = parse_args()
+    addr = "" if args.open else "localhost"
+    bind = (addr, args.port)
 
-  host = getfqdn() if args.open else "localhost"
-  print(f"SERVING -- http://{host}:{args.port}")
+    host = getfqdn() if args.open else "localhost"
+    print(f"SERVING -- http://{host}:{args.port}")
 
-  httpd = ThreadingHTTPServer(bind, EchoServer)
-  httpd.serve_forever()
+    httpd = ThreadingHTTPServer(bind, EchoServer)
+    httpd.serve_forever()
 
 
 try:
-  main()
+    main()
 except KeyboardInterrupt:
-  pass
+    pass

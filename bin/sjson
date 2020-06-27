@@ -1,43 +1,38 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, Namespace
-from json import JSONDecodeError, loads, dumps
+from json import JSONDecodeError, dumps, loads
 from locale import strxfrm
 from sys import stderr, stdin
 from typing import Any
 
 
 def recur_sort(data: Any) -> Any:
-  if type(data) is dict:
-    return {k: recur_sort(data[k])
-            for k in sorted(data, key=strxfrm)}
-  elif type(data) is list:
-    return [recur_sort(el) for el in data]
-  else:
-    return data
+    if type(data) is dict:
+        return {k: recur_sort(data[k]) for k in sorted(data, key=strxfrm)}
+    elif type(data) is list:
+        return [recur_sort(el) for el in data]
+    else:
+        return data
 
 
 def parse_args() -> Namespace:
-  parser = ArgumentParser()
-  parser.add_argument("-i", "--indent", type=int)
-  return parser.parse_args()
+    parser = ArgumentParser()
+    parser.add_argument("-i", "--indent", type=int)
+    return parser.parse_args()
 
 
 def main() -> None:
-  args = parse_args()
-  if not stdin.isatty():
+    args = parse_args()
     data = stdin.read()
     try:
-      json = loads(data)
+        json = loads(data)
     except JSONDecodeError:
-      print(f"ERROR! -- Failed to parse:\n\n{data}", file=stderr)
-      exit(1)
+        print(f"ERROR! -- Failed to parse:\n\n{data}", file=stderr)
+        exit(1)
     else:
-      new = recur_sort(json)
-      print(dumps(new, indent=args.indent))
-  else:
-    print(f"ERROR! -- nil input", file=stderr)
-    exit(1)
+        new = recur_sort(json)
+        print(dumps(new, indent=args.indent))
 
 
 main()

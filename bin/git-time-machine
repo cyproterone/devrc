@@ -1,118 +1,120 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, Namespace
-from math import floor
 from os import environ
-from shutil import get_terminal_size
 from subprocess import PIPE, run
 from sys import argv
-from typing import List
-
 
 EOF = "\04"
 
 
 def slurp(path: str) -> str:
-  with open(path) as fd:
-    return fd.read()
+    with open(path) as fd:
+        return fd.read()
 
 
 def git_file_log(path: str) -> bytes:
-  ret = run(["git", "log", "--relative-date", "--color=always",
-             "--pretty=format:%Cgreen%h%Creset %Cblue%ad%Creset %s", path],
-            stdout=PIPE)
-  if ret.returncode != 0:
-    exit(ret.returncode)
-  else:
-    return ret.stdout
+    ret = run(
+        [
+            "git",
+            "log",
+            "--relative-date",
+            "--color=always",
+            "--pretty=format:%Cgreen%h%Creset %Cblue%ad%Creset %s",
+            path,
+        ],
+        stdout=PIPE,
+    )
+    if ret.returncode != 0:
+        exit(ret.returncode)
+    else:
+        return ret.stdout
 
 
 def git_show_file(path: str, sha: str) -> bytes:
-  ret = run(["git", "show", f"{sha}:{path}"],
-            stdout=PIPE)
-  if ret.returncode != 0:
-    exit(ret.returncode)
-  else:
-    return ret.stdout
+    ret = run(["git", "show", f"{sha}:{path}"], stdout=PIPE)
+    if ret.returncode != 0:
+        exit(ret.returncode)
+    else:
+        return ret.stdout
 
 
 def git_show_diff(diff: int, path: str, sha: str) -> bytes:
-  ret = run(["git", "diff", f"--unified={diff}",
-             f"{sha}~", sha, "--", path],
-            stdout=PIPE)
-  if ret.returncode != 0:
-    exit(ret.returncode)
-  else:
-    return ret.stdout
+    ret = run(
+        ["git", "diff", f"--unified={diff}", f"{sha}~", sha, "--", path], stdout=PIPE
+    )
+    if ret.returncode != 0:
+        exit(ret.returncode)
+    else:
+        return ret.stdout
 
 
 def fzf_print(diff: int, path: str, commits: bytes) -> None:
-  exe = f"{path}{EOF}--show-sha={{+f1}}"
-  bind = f"--bind=return:abort+execute:{exe}"
-  preview_win = "--preview-window=right:70%:wrap"
-  diff_arg = f"--diff={diff}{EOF}" if diff >= 0 else ""
-  preview = f"{diff_arg}--preview-sha={{f1}}{EOF}{path}"
+    exe = f"{path}{EOF}--show-sha={{+f1}}"
+    bind = f"--bind=return:abort+execute:{exe}"
+    preview_win = "--preview-window=right:70%:wrap"
+    diff_arg = f"--diff={diff}{EOF}" if diff >= 0 else ""
+    preview = f"{diff_arg}--preview-sha={{f1}}{EOF}{path}"
 
-  ret = run(["fzf", "--ansi", "-m", bind,
-             preview_win, f"--preview={preview}"],
-            env={**environ, "SHELL": __file__},
-            input=commits)
-  exit(ret.returncode)
-
-
-def prettify_diff(diff: bytes) -> None:
-  pager = environ.get("GIT_PAGER", "tee")
-  cmd = next(iter(pager.split("|", 1)))
-  prog, *args = cmd.split(" ")
-  if prog == "delta":
-    width = int(environ["FZF_PREVIEW_COLUMNS"]) - 2
-    args.extend(("--width", str(width)))
-  ret = run([prog, *(a for a in args if a)], input=diff)
-  exit(ret.returncode)
-
-
-def fzf_preview(diff: int, sha: str, path: str) -> None:
-  if diff >= 0:
-    diff = git_show_diff(diff, path, sha)
-    prettify_diff(diff)
-  else:
-    content = git_show_file(path, sha)
-    ret = run(["ccat", path, "-"], input=content)
+    ret = run(
+        ["fzf", "--ansi", "-m", bind, preview_win, f"--preview={preview}"],
+        env={**environ, "SHELL": __file__},
+        input=commits,
+    )
     exit(ret.returncode)
 
 
-def parse_args() -> Namespace:
-  parser = ArgumentParser()
-  parser.add_argument("path")
-  group = parser.add_mutually_exclusive_group()
-  group.add_argument("--preview-sha", type=slurp)
-  group.add_argument("--show-sha", type=slurp)
-  parser.add_argument("-d", "--diff", type=int, default=-1)
+def prettify_diff(diff: bytes) -> None:
+    pager = environ.get("GIT_PAGER", "tee")
+    cmd = next(iter(pager.split("|", 1)))
+    prog, *args = cmd.split(" ")
+    if prog == "delta":
+        width = int(environ["FZF_PREVIEW_COLUMNS"]) - 2
+        args.extend(("--width", str(width)))
+    ret = run([prog, *(a for a in args if a)], input=diff)
+    exit(ret.returncode)
 
-  try:
-    a1, a2 = argv[1:]
-    if a1 == "-c":
-      return parser.parse_args(a2.split(EOF))
+
+def fzf_preview(diff: int, sha: str, path: str) -> None:
+    if diff >= 0:
+        diff = git_show_diff(diff, path, sha)
+        prettify_diff(diff)
     else:
-      return parser.parse_args()
-  except ValueError:
-    return parser.parse_args()
+        content = git_show_file(path, sha)
+        ret = run(["ccat", path, "-"], input=content)
+        exit(ret.returncode)
+
+
+def parse_args() -> Namespace:
+    parser = ArgumentParser()
+    parser.add_argument("path")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--preview-sha", type=slurp)
+    group.add_argument("--show-sha", type=slurp)
+    parser.add_argument("-d", "--diff", type=int, default=-1)
+
+    try:
+        a1, a2 = argv[1:]
+        if a1 == "-c":
+            return parser.parse_args(a2.split(EOF))
+        else:
+            return parser.parse_args()
+    except ValueError:
+        return parser.parse_args()
 
 
 def main() -> None:
-  args = parse_args()
+    args = parse_args()
 
-  if args.show_sha:
-    sha = args.show_sha.strip()
-    print(f"git show {sha}:{args.path}")
-  elif args.preview_sha:
-    sha = args.preview_sha.strip()
-    fzf_preview(args.diff,
-                sha,
-                args.path)
-  else:
-    commits = git_file_log(args.path)
-    fzf_print(args.diff, args.path, commits)
+    if args.show_sha:
+        sha = args.show_sha.strip()
+        print(f"git show {sha}:{args.path}")
+    elif args.preview_sha:
+        sha = args.preview_sha.strip()
+        fzf_preview(args.diff, sha, args.path)
+    else:
+        commits = git_file_log(args.path)
+        fzf_print(args.diff, args.path, commits)
 
 
 main()

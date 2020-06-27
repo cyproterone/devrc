@@ -3,93 +3,98 @@
 from argparse import ArgumentParser, Namespace
 from os import environ
 from subprocess import PIPE, run
-from sys import argv, stderr, stdout
-from typing import Iterator, List, Tuple
-
+from sys import argv
+from typing import Iterator, Tuple
 
 EOF = "\04"
 
 
 def slurp(path: str) -> str:
-  with open(path) as fd:
-    return fd.read()
+    with open(path) as fd:
+        return fd.read()
 
 
 def git_file_log() -> Iterator[Tuple[str, str, str]]:
-  ret = run(["git", "log", "--diff-filter=D", "--name-only",
-             "--relative-date", "--color=always",
-             "--pretty=format:%x00%Cgreen%h%Creset %Cblue%ad%Creset"],
-            stdout=PIPE)
-  if ret.returncode != 0:
-    exit(ret.returncode)
-  else:
-    for commit in ret.stdout.decode().split("\0"):
-      meta, *paths = commit.split("\n")
-      unpack = meta.split(" ", 1)
-      for path in paths:
-        if path:
-          sha, date = unpack
-          yield sha, date, path
+    ret = run(
+        [
+            "git",
+            "log",
+            "--diff-filter=D",
+            "--name-only",
+            "--relative-date",
+            "--color=always",
+            "--pretty=format:%x00%Cgreen%h%Creset %Cblue%ad%Creset",
+        ],
+        stdout=PIPE,
+    )
+    if ret.returncode != 0:
+        exit(ret.returncode)
+    else:
+        for commit in ret.stdout.decode().split("\0"):
+            meta, *paths = commit.split("\n")
+            unpack = meta.split(" ", 1)
+            for path in paths:
+                if path:
+                    sha, date = unpack
+                    yield sha, date, path
 
 
 def git_show_file(path: str, sha: str) -> str:
-  ret = run(
-      ["git", "show", f"{sha}~:{path}"],
-      stdout=PIPE)
-  if ret.returncode != 0:
-    exit(ret.returncode)
-  else:
-    return ret.stdout.decode()
+    ret = run(["git", "show", f"{sha}~:{path}"], stdout=PIPE)
+    if ret.returncode != 0:
+        exit(ret.returncode)
+    else:
+        return ret.stdout.decode()
 
 
 def fzf_print(paths: Iterator[Tuple[str, str, str]]) -> None:
-  exe = "--show={f}"
-  bind = f"--bind=return:abort+execute:{exe}"
-  preview_win = "--preview-window=right:70%:wrap"
-  preview = f"--preview={{f}}"
-  lines: Iterator[str] = (f"{sha}\n{date}\n{path}"
-                          for sha, date, path in paths)
+    exe = "--show={f}"
+    bind = f"--bind=return:abort+execute:{exe}"
+    preview_win = "--preview-window=right:70%:wrap"
+    preview = "--preview={{f}}"
+    lines: Iterator[str] = (f"{sha}\n{date}\n{path}" for sha, date, path in paths)
 
-  ret = run(["fzf", "--read0", "--ansi",
-             bind, preview_win, f"--preview={preview}"],
-            env={**environ, "SHELL": __file__},
-            input="\0".join(lines).encode())
-  exit(ret.returncode)
+    ret = run(
+        ["fzf", "--read0", "--ansi", bind, preview_win, f"--preview={preview}"],
+        env={**environ, "SHELL": __file__},
+        input="\0".join(lines).encode(),
+    )
+    exit(ret.returncode)
 
 
 def fzf_preview(sha: str, path: str) -> None:
-  content = git_show_file(path, sha)
-  ret = run(["ccat", path, "-"], input=content.encode())
-  exit(ret.returncode)
+    content = git_show_file(path, sha)
+    ret = run(["ccat", path, "-"], input=content.encode())
+    exit(ret.returncode)
 
 
 def parse_args() -> Namespace:
-  parser = ArgumentParser()
-  group = parser.add_mutually_exclusive_group()
-  group.add_argument("--preview", type=slurp)
-  group.add_argument("--show", type=slurp)
+    parser = ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--preview", type=slurp)
+    group.add_argument("--show", type=slurp)
 
-  try:
-    a1, a2 = argv[1:]
-    if a1 == "-c":
-      return parser.parse_args(a2.split(EOF))
-    else:
-      return parser.parse_args()
-  except ValueError:
-    return parser.parse_args()
+    try:
+        a1, a2 = argv[1:]
+        if a1 == "-c":
+            return parser.parse_args(a2.split(EOF))
+        else:
+            return parser.parse_args()
+    except ValueError:
+        return parser.parse_args()
 
 
 def main() -> None:
-  args = parse_args()
-  if args.show:
-    sha, _, path = args.show.strip().split("\n")
-    print(f"git show {sha}~:{path}")
-  elif args.preview:
-    sha, _, path = args.preview.strip().split("\n")
-    fzf_preview(sha, path)
-  else:
-    paths = git_file_log()
-    fzf_print(paths)
+    args = parse_args()
+    if args.show:
+        sha, _, path = args.show.strip().split("\n")
+        print(f"git show {sha}~:{path}")
+    elif args.preview:
+        sha, _, path = args.preview.strip().split("\n")
+        fzf_preview(sha, path)
+    else:
+        paths = git_file_log()
+        fzf_print(paths)
 
 
 main()

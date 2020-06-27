@@ -4,7 +4,7 @@ from argparse import ArgumentParser, Namespace
 from os import environ
 from subprocess import PIPE, run
 from sys import argv, stderr, stdout
-from typing import Iterable, List, Tuple
+from typing import Iterator, List, Tuple
 
 
 EOF = "\04"
@@ -15,7 +15,7 @@ def slurp(path: str) -> str:
     return fd.read()
 
 
-def git_file_log() -> Iterable[Tuple[str, str, str]]:
+def git_file_log() -> Iterator[Tuple[str, str, str]]:
   ret = run(["git", "log", "--diff-filter=D", "--name-only",
              "--relative-date", "--color=always",
              "--pretty=format:%x00%Cgreen%h%Creset %Cblue%ad%Creset"],
@@ -42,12 +42,12 @@ def git_show_file(path: str, sha: str) -> str:
     return ret.stdout.decode()
 
 
-def fzf_print(paths: Iterable[Tuple[str, str, str]]) -> None:
+def fzf_print(paths: Iterator[Tuple[str, str, str]]) -> None:
   exe = "--show={f}"
   bind = f"--bind=return:abort+execute:{exe}"
   preview_win = "--preview-window=right:70%:wrap"
   preview = f"--preview={{f}}"
-  lines: Iterable[str] = (f"{sha}\n{date}\n{path}"
+  lines: Iterator[str] = (f"{sha}\n{date}\n{path}"
                           for sha, date, path in paths)
 
   ret = run(["fzf", "--read0", "--ansi",

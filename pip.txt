@@ -5,4 +5,5 @@ ranger-fm
 speedtest-cli
 tldr
 httpie
+streamlink
 

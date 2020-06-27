@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
+
+bin="$(dirname "$0")"
+PATH="$(paths --silent remove "$bin")"
+
+
+if [[ $# -eq 0 ]]
+then
+  >&2 printf '%s\n' 'MISSING - URI'
+  exit 1
+fi
+
+ARGS=(
+  --player=mpv
+  --
+  "$@"
+  best
+  )
+
+
+exec streamlink "${ARGS[@]}"
+

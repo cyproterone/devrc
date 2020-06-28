@@ -53,7 +53,14 @@ def main() -> None:
         exit(1)
     else:
         new = recur_sort(yaml)
-        safe_dump_all(new, stdout, allow_unicode=True, width=cols, indent=args.indent)
+        safe_dump_all(
+            new,
+            stdout,
+            allow_unicode=True,
+            explicit_start=True,
+            width=cols,
+            indent=args.indent,
+        )
 
 
 main()

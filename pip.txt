@@ -1,3 +1,4 @@
+pyyaml
 pynvim
 ansible
 git+https://github.com/LazoCoder/Pokemon-Terminal.git

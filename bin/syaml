@@ -2,7 +2,8 @@
 
 from argparse import ArgumentParser, Namespace
 from locale import strxfrm
-from sys import stderr, stdin
+from shutil import get_terminal_size
+from sys import stderr, stdin, stdout
 from typing import Any
 
 from yaml import safe_dump_all, safe_load_all
@@ -27,6 +28,9 @@ def parse_args() -> Namespace:
 def main() -> None:
     args = parse_args()
     data = stdin.read()
+    max_w = 80
+    cols, _ = get_terminal_size((max_w, -1))
+    cols = min(cols, max_w)
     try:
         yaml = [*safe_load_all(data)]
     except ScannerError:
@@ -34,7 +38,7 @@ def main() -> None:
         exit(1)
     else:
         new = recur_sort(yaml)
-        print(safe_dump_all(new, indent=args.indent))
+        safe_dump_all(new, stdout, allow_unicode=True, width=cols, indent=args.indent)
 
 
 main()

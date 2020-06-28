@@ -13,7 +13,7 @@ class EchoServer(BaseHTTPRequestHandler):
         self.wfile.write(b"OK")
 
     def __log_req__(self) -> None:
-        _, cols = get_terminal_size()
+        cols, _ = get_terminal_size()
         print("*" * cols)
 
         method = self.command

@@ -3,7 +3,8 @@
 from argparse import ArgumentParser, Namespace
 from locale import strxfrm
 from shutil import get_terminal_size
-from sys import stderr, stdin, stdout
+from subprocess import run
+from sys import stderr, stdin
 from typing import Any
 
 from yaml import safe_dump_all, safe_load_all
@@ -22,6 +23,7 @@ def recur_sort(data: Any) -> Any:
 def parse_args() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument("-i", "--indent", type=int, default=2)
+    parser.add_argument("-p", "--pretty", action="store_true")
     return parser.parse_args()
 
 
@@ -38,7 +40,12 @@ def main() -> None:
         exit(1)
     else:
         new = recur_sort(yaml)
-        safe_dump_all(new, stdout, allow_unicode=True, width=cols, indent=args.indent)
+        dump = safe_dump_all(new, allow_unicode=True, width=cols, indent=args.indent)
+        if args.pretty:
+            ret = run(["prettier", "--stdin-filepath", "_.yaml"], input=dump.encode())
+            exit(ret.returncode)
+        else:
+            print(dump, end="")
 
 
 main()

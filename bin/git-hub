@@ -1,11 +1,37 @@
-#!/usr/bin/env bash
-
-set -eu
-set -o pipefail
+#!/usr/bin/env python3
 
 
-UPSTREAM="$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream})"
-REMOTE="$(cut -d '/' -f 1 <<< "$UPSTREAM")"
-URI="$(git remote get-url "$REMOTE")"
+from os import environ
+from subprocess import PIPE, run
 
-exec "$BROWSER" "$URI"
+
+def call_into(prog: str, *args: str) -> str:
+    ret = run([prog, *args], stdout=PIPE)
+    if ret.returncode != 0:
+        exit(ret.returncode)
+    else:
+        return ret.stdout.decode().rstrip("\n")
+
+
+def p_uri(uri: str) -> str:
+    if uri.startswith("http"):
+        return uri
+    elif uri.startswith("git@github.com:"):
+        location = uri.replace("git@github.com:", "")
+        return f"https://github.com/{location}"
+
+
+def main() -> None:
+    browser = environ["BROWSER"]
+    upstream = call_into(
+        "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"
+    )
+    remote, _ = upstream.split("/", 1)
+    uri = call_into("git", "remote", "get-url", remote)
+
+    clean_uri = p_uri(uri)
+    ret = call_into(browser, clean_uri)
+    print(ret, end="")
+
+
+main()

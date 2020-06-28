@@ -3,8 +3,7 @@
 from argparse import ArgumentParser, Namespace
 from locale import strxfrm
 from shutil import get_terminal_size
-from subprocess import run
-from sys import stderr, stdin
+from sys import stderr, stdin, stdout
 from typing import Any, Callable
 
 from yaml import BaseDumper, SafeDumper, add_representer, safe_dump_all, safe_load_all
@@ -32,7 +31,7 @@ def repr_str(width: int) -> Callable[[BaseDumper, str], ScalarNode]:
     break_pt = width // 2
 
     def repr_str(dumper: BaseDumper, data: str) -> ScalarNode:
-        style = "|" if len(data) > break_pt else ""
+        style = ">" if len(data) > break_pt else ""
         return dumper.represent_scalar("tag:yaml.org,2002:str", data, style=style)
 
     return repr_str
@@ -54,12 +53,7 @@ def main() -> None:
         exit(1)
     else:
         new = recur_sort(yaml)
-        dump = safe_dump_all(new, allow_unicode=True, width=cols, indent=args.indent)
-        if args.pretty:
-            ret = run(["prettier", "--stdin-filepath", "_.yaml"], input=dump.encode())
-            exit(ret.returncode)
-        else:
-            print(dump, end="")
+        safe_dump_all(new, stdout, allow_unicode=True, width=cols, indent=args.indent)
 
 
 main()

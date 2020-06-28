@@ -16,6 +16,7 @@ from pygments.lexers import (
 )
 from pygments.lexers.special import TextLexer
 from pygments.styles import get_all_styles, get_style_by_name
+from pygments.util import ClassNotFound
 
 
 def arg_parse() -> Namespace:
@@ -51,10 +52,10 @@ def get_lexer(lexer_name: Optional[str], file_name: Optional[str], text: str) ->
     else:
         try:
             return get_lexer_for_filename(file_name)
-        except:
+        except ClassNotFound:
             try:
                 return guess_lexer(text)
-            except:
+            except ClassNotFound:
                 return TextLexer()
 
 

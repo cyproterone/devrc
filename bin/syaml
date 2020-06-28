@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser, Namespace
+from locale import strxfrm
+from sys import stderr, stdin
+from typing import Any
+
+from yaml import safe_dump_all, safe_load_all
+from yaml.scanner import ScannerError
+
+
+def recur_sort(data: Any) -> Any:
+    if type(data) is dict:
+        return {k: recur_sort(data[k]) for k in sorted(data, key=strxfrm)}
+    elif type(data) is list:
+        return [recur_sort(el) for el in data]
+    else:
+        return data
+
+
+def parse_args() -> Namespace:
+    parser = ArgumentParser()
+    parser.add_argument("-i", "--indent", type=int, default=2)
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    data = stdin.read()
+    try:
+        yaml = [*safe_load_all(data)]
+    except ScannerError:
+        print(f"ERROR! -- Failed to parse:\n\n{data}", file=stderr)
+        exit(1)
+    else:
+        new = recur_sort(yaml)
+        print(safe_dump_all(new, indent=args.indent))
+
+
+main()

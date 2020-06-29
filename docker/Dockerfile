@@ -9,4 +9,4 @@ RUN apt update && \
 
 COPY . /root/.config/devrc
 WORKDIR /root/.config/devrc
-RUN ansible localhost.ansible.yml
+RUN ansible-playbook localhost.ansible.yml

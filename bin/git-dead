@@ -51,7 +51,7 @@ def fzf_print(paths: Iterator[Tuple[str, str, str]]) -> None:
     exe = "--show={f}"
     bind = f"--bind=return:abort+execute:{exe}"
     preview_win = "--preview-window=right:70%:wrap"
-    preview = "--preview={{f}}"
+    preview = "--preview={f}"
     lines: Iterator[str] = (f"{sha}\n{date}\n{path}" for sha, date, path in paths)
 
     ret = run(

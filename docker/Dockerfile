@@ -3,10 +3,11 @@ FROM ubuntu:latest
 
 RUN apt update && \
     apt install -y \
-    git python3 python3-pip && \
+    git python3 python3-pip nodejs npm && \
     pip3 install ansible
 
 
 COPY . /root/.config/devrc
 WORKDIR /root/.config/devrc
-RUN ansible-playbook localhost.ansible.yml
+RUN ansible-playbook localhost.ansible.yml && \
+    ./init.sh

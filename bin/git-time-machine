@@ -21,6 +21,7 @@ def git_file_log(path: str) -> bytes:
             "--relative-date",
             "--color=always",
             "--pretty=format:%Cgreen%h%Creset %Cblue%ad%Creset %s",
+            "--",
             path,
         ],
         stdout=PIPE,

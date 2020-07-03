@@ -1,9 +1,7 @@
-pyyaml
-ansible
+gay
+sortd
 git+https://github.com/LazoCoder/Pokemon-Terminal.git
-lolcat
 ranger-fm
 speedtest-cli
 tldr
 httpie
-streamlink

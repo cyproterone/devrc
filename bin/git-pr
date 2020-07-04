@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
+
+
+OPTS='i:b:'
+LONG_OPTS='id:,br:,branch:'
+
+PARSED="$(getopt --options="$OPTS", --longoptions="$LONG_OPTS" --name="$0" -- "$@")"
+eval set -- "$PARSED"
+
+ID=''
+BRANCH=''
+
+
+while true
+do
+  case "$1" in
+    -i|--id)
+      ID="$2"
+      shift
+      shift
+      ;;
+    -b|--br|--branch)
+      BRANCH="$2"
+      shift
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      >&2 printf '%s\n' '!ERR!'
+      exit 2
+      ;;
+  esac
+done
+
+
+if [[ $# -ne 0 ]]
+then
+  >&2 printf '%s\n' '!ERR! - $#'
+  exit 1
+fi
+
+
+HELP="$(tee <<-EOF
+usage:
+
+-i, --id ID
+-b, --br, --branch BRANCH
+EOF
+)"
+
+
+if [[ -z "$ID" ]] || [[ -z "$BRANCH" ]]
+then
+  >&2 printf '%s\n' '!ERR!'
+  >&2 printf '%s\n' "$HELP"
+  exit 1
+fi
+
+
+git fetch origin -- "pull/$ID/head:$BRANCH"
+git checkout -- "$BRANCH"

@@ -16,7 +16,7 @@ def slurp(path: str) -> str:
 
 def git_file_log() -> Iterator[Tuple[str, str, str]]:
     ret = run(
-        [
+        (
             "git",
             "log",
             "--diff-filter=D",
@@ -24,7 +24,7 @@ def git_file_log() -> Iterator[Tuple[str, str, str]]:
             "--relative-date",
             "--color=always",
             "--pretty=format:%x00%Cgreen%h%Creset %Cblue%ad%Creset",
-        ],
+        ),
         stdout=PIPE,
     )
     if ret.returncode != 0:
@@ -40,7 +40,7 @@ def git_file_log() -> Iterator[Tuple[str, str, str]]:
 
 
 def git_show_file(path: str, sha: str) -> str:
-    ret = run(["git", "show", f"{sha}~:{path}"], stdout=PIPE)
+    ret = run(("git", "show", f"{sha}~:{path}"), stdout=PIPE)
     if ret.returncode != 0:
         exit(ret.returncode)
     else:
@@ -57,7 +57,7 @@ def fzf_print(paths: Iterator[Tuple[str, str, str]]) -> None:
     )
 
     ret = run(
-        ["fzf", "--read0", "--ansi", bind, preview_win, f"--preview={preview}"],
+        ("fzf", "--read0", "--ansi", bind, preview_win, f"--preview={preview}"),
         env={**environ, "SHELL": __file__},
         input="\0".join(lines).encode(),
     )
@@ -66,7 +66,7 @@ def fzf_print(paths: Iterator[Tuple[str, str, str]]) -> None:
 
 def fzf_preview(sha: str, path: str) -> None:
     content = git_show_file(path, sha)
-    ret = run(["ccat", path, "-"], input=content.encode())
+    ret = run(("ccat", path, "-"), input=content.encode())
     exit(ret.returncode)
 
 

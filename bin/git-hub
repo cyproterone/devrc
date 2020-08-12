@@ -13,22 +13,24 @@ def call_into(prog: str, *args: str) -> str:
         return ret.stdout.decode().rstrip("\n")
 
 
-def p_uri(uri: str) -> str:
+def p_uri(uri: str, branch: str) -> str:
     if uri.startswith("http"):
         return uri
     elif uri.startswith("git@github.com:"):
-        location = uri.replace("git@github.com:", "")
-        return f"https://github.com/{location}"
+        location = uri.replace("git@github.com:", "")[: -len(".git")]
+        return f"https://github.com/{location}/tree/{branch}"
+    else:
+        raise ValueError(f"Cannot parse {uri} into https://...")
 
 
 def main() -> None:
     upstream = call_into(
         "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"
     )
-    remote, _ = upstream.split("/", 1)
+    remote, _, branch = upstream.partition("/")
     uri = call_into("git", "remote", "get-url", remote)
 
-    clean_uri = p_uri(uri)
+    clean_uri = p_uri(uri, branch=branch)
     open_w(clean_uri)
     print(clean_uri)
 

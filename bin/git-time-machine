@@ -15,7 +15,7 @@ def slurp(path: str) -> str:
 
 def git_file_log(path: str) -> bytes:
     ret = run(
-        [
+        (
             "git",
             "log",
             "--relative-date",
@@ -23,7 +23,7 @@ def git_file_log(path: str) -> bytes:
             "--pretty=format:%Cgreen%h%Creset %Cblue%ad%Creset %s",
             "--",
             path,
-        ],
+        ),
         stdout=PIPE,
     )
     if ret.returncode != 0:
@@ -33,7 +33,7 @@ def git_file_log(path: str) -> bytes:
 
 
 def git_show_file(path: str, sha: str) -> bytes:
-    ret = run(["git", "show", f"{sha}:{path}"], stdout=PIPE)
+    ret = run(("git", "show", f"{sha}:{path}"), stdout=PIPE)
     if ret.returncode != 0:
         exit(ret.returncode)
     else:
@@ -42,7 +42,7 @@ def git_show_file(path: str, sha: str) -> bytes:
 
 def git_show_diff(diff: int, path: str, sha: str) -> bytes:
     ret = run(
-        ["git", "diff", f"--unified={diff}", f"{sha}~", sha, "--", path], stdout=PIPE
+        ("git", "diff", f"--unified={diff}", f"{sha}~", sha, "--", path), stdout=PIPE
     )
     if ret.returncode != 0:
         exit(ret.returncode)
@@ -58,7 +58,7 @@ def fzf_print(diff: int, path: str, commits: bytes) -> None:
     preview = f"{diff_arg}--preview-sha={{f1}}{EOF}{path}"
 
     ret = run(
-        ["fzf", "--ansi", "-m", bind, preview_win, f"--preview={preview}"],
+        ("fzf", "--ansi", "-m", bind, preview_win, f"--preview={preview}"),
         env={**environ, "SHELL": __file__},
         input=commits,
     )
@@ -69,10 +69,7 @@ def prettify_diff(diff: bytes) -> None:
     pager = environ.get("GIT_PAGER", "tee")
     cmd = next(iter(pager.split("|", 1)))
     prog, *args = cmd.split(" ")
-    if prog == "delta":
-        width = int(environ["FZF_PREVIEW_COLUMNS"]) - 2
-        args.extend(("--width", str(width)))
-    ret = run([prog, *(a for a in args if a)], input=diff)
+    ret = run((prog, *(a for a in args if a)), input=diff)
     exit(ret.returncode)
 
 

@@ -27,24 +27,20 @@ def git_file_log() -> Iterator[Tuple[str, str, str]]:
         ),
         stdout=PIPE,
     )
-    if ret.returncode != 0:
-        exit(ret.returncode)
-    else:
-        for commit in ret.stdout.decode().split("\0"):
-            meta, *paths = commit.split(linesep)
-            unpack = meta.split(" ", 1)
-            for path in paths:
-                if path:
-                    sha, date = unpack
-                    yield sha, date, path
+    ret.check_returncode()
+    for commit in ret.stdout.decode().split("\0"):
+        meta, *paths = commit.split(linesep)
+        unpack = meta.split(" ", 1)
+        for path in paths:
+            if path:
+                sha, date = unpack
+                yield sha, date, path
 
 
 def git_show_file(path: str, sha: str) -> str:
     ret = run(("git", "show", f"{sha}~:{path}"), stdout=PIPE)
-    if ret.returncode != 0:
-        exit(ret.returncode)
-    else:
-        return ret.stdout.decode()
+    ret.check_returncode()
+    return ret.stdout.decode()
 
 
 def fzf_print(paths: Iterator[Tuple[str, str, str]]) -> None:
@@ -61,13 +57,13 @@ def fzf_print(paths: Iterator[Tuple[str, str, str]]) -> None:
         env={**environ, "SHELL": __file__},
         input="\0".join(lines).encode(),
     )
-    exit(ret.returncode)
+    ret.check_returncode()
 
 
 def fzf_preview(sha: str, path: str) -> None:
     content = git_show_file(path, sha)
     ret = run(("ccat", path, "-"), input=content.encode())
-    exit(ret.returncode)
+    ret.check_returncode()
 
 
 def parse_args() -> Namespace:

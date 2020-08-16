@@ -26,28 +26,22 @@ def git_file_log(path: str) -> bytes:
         ),
         stdout=PIPE,
     )
-    if ret.returncode != 0:
-        exit(ret.returncode)
-    else:
-        return ret.stdout
+    ret.check_returncode()
+    return ret.stdout
 
 
 def git_show_file(path: str, sha: str) -> bytes:
     ret = run(("git", "show", f"{sha}:{path}"), stdout=PIPE)
-    if ret.returncode != 0:
-        exit(ret.returncode)
-    else:
-        return ret.stdout
+    ret.check_returncode()
+    return ret.stdout
 
 
 def git_show_diff(diff: int, path: str, sha: str) -> bytes:
     ret = run(
         ("git", "diff", f"--unified={diff}", f"{sha}~", sha, "--", path), stdout=PIPE
     )
-    if ret.returncode != 0:
-        exit(ret.returncode)
-    else:
-        return ret.stdout
+    ret.check_returncode()
+    return ret.stdout
 
 
 def fzf_print(diff: int, path: str, commits: bytes) -> None:
@@ -62,7 +56,7 @@ def fzf_print(diff: int, path: str, commits: bytes) -> None:
         env={**environ, "SHELL": __file__},
         input=commits,
     )
-    exit(ret.returncode)
+    ret.check_returncode()
 
 
 def prettify_diff(diff: bytes) -> None:
@@ -70,17 +64,17 @@ def prettify_diff(diff: bytes) -> None:
     cmd = next(iter(pager.split("|", 1)))
     prog, *args = cmd.split(" ")
     ret = run((prog, *(a for a in args if a)), input=diff)
-    exit(ret.returncode)
+    ret.check_returncode()
 
 
 def fzf_preview(diff: int, sha: str, path: str) -> None:
     if diff >= 0:
-        diff = git_show_diff(diff, path, sha)
-        prettify_diff(diff)
+        g_diff = git_show_diff(diff, path, sha)
+        prettify_diff(g_diff)
     else:
         content = git_show_file(path, sha)
         ret = run(["ccat", path, "-"], input=content)
-        exit(ret.returncode)
+        ret.check_returncode()
 
 
 def parse_args() -> Namespace:

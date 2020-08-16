@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 
-
+from os import linesep
 from subprocess import PIPE, run
 from webbrowser import open as open_w
 
 
 def call_into(prog: str, *args: str) -> str:
     ret = run([prog, *args], stdout=PIPE)
-    if ret.returncode != 0:
-        exit(ret.returncode)
-    else:
-        return ret.stdout.decode().rstrip("\n")
+    ret.check_returncode()
+    return ret.stdout.decode().rstrip(linesep)
 
 
 def p_uri(uri: str, branch: str) -> str:

@@ -57,7 +57,6 @@ def fzf_print(paths: Iterator[Tuple[str, str, str]]) -> None:
         env={**environ, "SHELL": __file__},
         input="\0".join(lines).encode(),
     )
-    ret.check_returncode()
 
 
 def fzf_preview(sha: str, path: str) -> None:

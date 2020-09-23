@@ -56,7 +56,6 @@ def fzf_print(diff: int, path: str, commits: bytes) -> None:
         env={**environ, "SHELL": __file__},
         input=commits,
     )
-    ret.check_returncode()
 
 
 def prettify_diff(diff: bytes) -> None:

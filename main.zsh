@@ -3,9 +3,6 @@
 #################### ########### ####################
 
 export PATH="$XDG_CONFIG_HOME/devrc/bin:$PATH"
-export NPM_GLOBAL_HOME="$XDG_DATA_HOME/npm_global"
-export PATH="$NPM_GLOBAL_HOME/node_modules/.bin:$PATH"
-
 export MYPY_CACHE_DIR="$XDG_CACHE_HOME/mypy"
 
 

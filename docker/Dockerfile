@@ -10,5 +10,4 @@ RUN apt update && \
 
 COPY . /root/.config/devrc
 WORKDIR /root/.config/devrc
-RUN ansible-playbook localhost.ansible.yml && \
-    ./init.sh
+RUN ansible-playbook localhost.ansible.yml
